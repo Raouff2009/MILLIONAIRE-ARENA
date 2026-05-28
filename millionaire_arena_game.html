@@ -1,0 +1,485 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+#app { min-height: 600px; background: #0a0f2e; color: #fff; border-radius: var(--border-radius-lg); overflow: hidden; position: relative; }
+
+.screen { display: none; padding: 2rem; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* MAIN MENU */
+#menu { background: linear-gradient(160deg, #0a0f2e 0%, #1a1060 100%); min-height: 600px; justify-content: center; gap: 1.5rem; }
+.logo-ring { width: 110px; height: 110px; border-radius: 50%; border: 3px solid #FFD700; display: flex; align-items: center; justify-content: center; position: relative; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(255,215,0,0.4); } 50%{ box-shadow: 0 0 0 16px rgba(255,215,0,0); } }
+.logo-inner { font-size: 40px; }
+.game-title { font-size: 28px; font-weight: 700; color: #FFD700; letter-spacing: 2px; text-align: center; }
+.game-sub { font-size: 13px; color: #8899cc; margin-top: -8px; }
+
+.rank-badge { display: flex; align-items: center; gap: 8px; background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.2); border-radius: 20px; padding: 6px 16px; font-size: 13px; color: #FFD700; }
+
+.btn-primary { background: linear-gradient(135deg, #FFD700, #FFA500); color: #0a0f2e; border: none; padding: 14px 48px; border-radius: 30px; font-size: 17px; font-weight: 700; cursor: pointer; width: 100%; max-width: 280px; transition: transform 0.15s, opacity 0.15s; }
+.btn-primary:hover { transform: scale(1.03); opacity: 0.92; }
+.btn-secondary { background: transparent; color: #8899cc; border: 1px solid #2a3060; padding: 10px 32px; border-radius: 20px; font-size: 14px; cursor: pointer; width: 100%; max-width: 280px; transition: border-color 0.2s, color 0.2s; }
+.btn-secondary:hover { border-color: #FFD700; color: #FFD700; }
+
+.stats-row { display: flex; gap: 24px; }
+.stat-box { text-align: center; }
+.stat-num { font-size: 22px; font-weight: 700; color: #FFD700; }
+.stat-lbl { font-size: 11px; color: #556; margin-top: 2px; }
+
+/* CATEGORY SELECT */
+#categories { background: #0a0f2e; min-height: 600px; gap: 1.2rem; }
+.section-title { font-size: 20px; font-weight: 600; color: #FFD700; align-self: flex-start; }
+.section-sub { font-size: 13px; color: #8899cc; align-self: flex-start; margin-top: -8px; }
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.cat-card { background: #111840; border: 2px solid transparent; border-radius: 12px; padding: 14px 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.cat-card:hover, .cat-card.selected { border-color: #FFD700; background: rgba(255,215,0,0.07); }
+.cat-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+.cat-name { font-size: 12px; color: #aab; }
+
+/* GAME SCREEN */
+#game { background: #0a0f2e; min-height: 600px; gap: 1rem; width: 100%; }
+.game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 0.5rem; }
+.q-counter { font-size: 13px; color: #8899cc; }
+.score-disp { font-size: 14px; font-weight: 600; color: #FFD700; }
+
+.timer-wrap { width: 100%; }
+.timer-bar { height: 6px; background: #1a1f4a; border-radius: 3px; overflow: hidden; }
+.timer-fill { height: 100%; background: linear-gradient(90deg, #FFD700, #FFA500); border-radius: 3px; transition: width 0.1s linear; }
+
+.combo-tag { font-size: 12px; color: #fff; background: #e05; border-radius: 20px; padding: 3px 12px; display: none; }
+.combo-tag.show { display: block; animation: popIn 0.3s; }
+@keyframes popIn { from{transform:scale(0.5);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+.q-card { background: #111840; border-radius: 14px; padding: 1.5rem; width: 100%; }
+.q-category { font-size: 11px; color: #8899cc; margin-bottom: 8px; }
+.q-text { font-size: 16px; font-weight: 500; line-height: 1.5; color: #eef; }
+
+.options-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.opt-btn { background: #111840; border: 1.5px solid #2a3060; border-radius: 12px; padding: 13px 16px; text-align: right; cursor: pointer; color: #dde; font-size: 14px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
+.opt-btn:hover:not(:disabled) { border-color: #FFD700; background: rgba(255,215,0,0.06); }
+.opt-btn .opt-letter { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #3a4080; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #8899cc; flex-shrink: 0; }
+.opt-btn.correct { border-color: #22c55e; background: rgba(34,197,94,0.1); }
+.opt-btn.correct .opt-letter { border-color: #22c55e; color: #22c55e; }
+.opt-btn.wrong { border-color: #ef4444; background: rgba(239,68,68,0.1); }
+.opt-btn.wrong .opt-letter { border-color: #ef4444; color: #ef4444; }
+.opt-btn:disabled { cursor: default; }
+
+.lifelines { display: flex; gap: 10px; width: 100%; justify-content: center; }
+.ll-btn { background: #111840; border: 1px solid #2a3060; border-radius: 8px; padding: 8px 14px; font-size: 12px; color: #8899cc; cursor: pointer; transition: all 0.2s; }
+.ll-btn:hover:not(:disabled) { border-color: #FFD700; color: #FFD700; }
+.ll-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* RESULT */
+#result { background: #0a0f2e; min-height: 600px; justify-content: center; gap: 1.2rem; }
+.result-ring { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #FFD700; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-score-num { font-size: 32px; font-weight: 700; color: #FFD700; }
+.result-score-lbl { font-size: 11px; color: #8899cc; }
+.result-title { font-size: 22px; font-weight: 700; color: #fff; }
+.result-sub { font-size: 14px; color: #8899cc; text-align: center; }
+.result-stats { display: flex; gap: 24px; }
+.rank-up { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 10px; padding: 10px 20px; font-size: 13px; color: #FFD700; text-align: center; }
+
+/* LEADERBOARD */
+#leaderboard { background: #0a0f2e; min-height: 600px; gap: 1rem; }
+.lb-item { display: flex; align-items: center; gap: 12px; background: #111840; border-radius: 10px; padding: 12px 16px; width: 100%; }
+.lb-rank { width: 28px; font-size: 14px; font-weight: 700; color: #8899cc; text-align: center; }
+.lb-rank.gold { color: #FFD700; }
+.lb-rank.silver { color: #C0C0C0; }
+.lb-rank.bronze { color: #CD7F32; }
+.lb-avatar { width: 36px; height: 36px; border-radius: 50%; background: #1a2060; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #FFD700; }
+.lb-name { flex: 1; font-size: 14px; color: #dde; }
+.lb-pts { font-size: 14px; font-weight: 700; color: #FFD700; }
+.lb-you { border: 1px solid rgba(255,215,0,0.3); }
+.week-reset { font-size: 11px; color: #556; align-self: flex-start; }
+.prize-row { display: flex; gap: 8px; width: 100%; }
+.prize-card { flex: 1; background: #111840; border-radius: 8px; padding: 10px; text-align: center; }
+.prize-icon { font-size: 20px; }
+.prize-amt { font-size: 13px; font-weight: 600; color: #FFD700; }
+.prize-rank { font-size: 11px; color: #8899cc; }
+
+.nav-tabs { display: flex; gap: 6px; width: 100%; }
+.nav-tab { flex: 1; background: #111840; border: 1px solid #2a3060; border-radius: 8px; padding: 9px; font-size: 13px; color: #8899cc; cursor: pointer; text-align: center; transition: all 0.2s; }
+.nav-tab.active { border-color: #FFD700; color: #FFD700; background: rgba(255,215,0,0.06); }
+
+.points-popup { position: absolute; right: 40px; top: 50%; font-size: 20px; font-weight: 800; color: #FFD700; pointer-events: none; animation: floatUp 1s forwards; display: none; }
+@keyframes floatUp { 0%{opacity:1;transform:translateY(0);} 100%{opacity:0;transform:translateY(-60px);} }
+</style>
+
+<div id="app">
+  <div class="points-popup" id="pts-popup">+10</div>
+
+  <!-- MAIN MENU -->
+  <div id="menu" class="screen active">
+    <div class="logo-ring"><div class="logo-inner">🏆</div></div>
+    <div class="game-title">MILLIONAIRE ARENA</div>
+    <div class="game-sub">تحدي الذكاء الأكبر</div>
+    <div class="rank-badge">🥉 Bronze · 0 pts هذا الأسبوع</div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" id="total-score">0</div><div class="stat-lbl">مجموع النقاط</div></div>
+      <div class="stat-box"><div class="stat-num" id="games-played">0</div><div class="stat-lbl">جولات لعبتها</div></div>
+      <div class="stat-box"><div class="stat-num" id="best-score">0</div><div class="stat-lbl">أعلى نتيجة</div></div>
+    </div>
+    <button class="btn-primary" onclick="showScreen('categories')">▶ العب الآن</button>
+    <button class="btn-secondary" onclick="showScreen('leaderboard')">🏆 Leaderboard</button>
+  </div>
+
+  <!-- CATEGORY SELECT -->
+  <div id="categories" class="screen">
+    <div class="section-title">اختار مجالك</div>
+    <div class="section-sub">اختار مجال أو العب Mix لأسئلة عشوائية</div>
+    <div class="cat-grid" id="cat-grid"></div>
+    <button class="btn-primary" id="start-btn" onclick="startGame()" style="margin-top:0.5rem">ابدأ اللعبة</button>
+    <button class="btn-secondary" onclick="showScreen('menu')">رجوع</button>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="screen">
+    <div class="game-header">
+      <div class="q-counter" id="q-counter">سؤال 1 / 10</div>
+      <div class="combo-tag" id="combo-tag">🔥 Combo x2</div>
+      <div class="score-disp" id="score-disp">0 نقطة</div>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+    </div>
+    <div class="lifelines">
+      <button class="ll-btn" id="ll-5050" onclick="useFiftyFifty()">50/50</button>
+      <button class="ll-btn" id="ll-skip" onclick="useSkip()">تخطي ⏭</button>
+      <button class="ll-btn" id="ll-time" onclick="useExtraTime()">+10 ثواني ⏱</button>
+    </div>
+    <div class="q-card">
+      <div class="q-category" id="q-category"></div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+    <div class="options-grid" id="options-grid"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result" class="screen">
+    <div class="result-ring">
+      <div class="result-score-num" id="res-score">0</div>
+      <div class="result-score-lbl">نقطة</div>
+    </div>
+    <div class="result-title" id="res-title">أداء ممتاز!</div>
+    <div class="result-sub" id="res-sub"></div>
+    <div class="result-stats">
+      <div class="stat-box"><div class="stat-num" id="res-correct">0</div><div class="stat-lbl">صح</div></div>
+      <div class="stat-box"><div class="stat-num" id="res-wrong">0</div><div class="stat-lbl">غلط</div></div>
+      <div class="stat-box"><div class="stat-num" id="res-combo">0</div><div class="stat-lbl">أعلى combo</div></div>
+    </div>
+    <div class="rank-up" id="rank-up">🥉 Bronze Player</div>
+    <button class="btn-primary" onclick="startGame()">العب مرة ثانية</button>
+    <button class="btn-secondary" onclick="showScreen('menu')">القائمة الرئيسية</button>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="leaderboard" class="screen">
+    <div class="nav-tabs">
+      <div class="nav-tab active">هذا الأسبوع</div>
+      <div class="nav-tab" style="opacity:0.5">الكل</div>
+    </div>
+    <div class="prize-row">
+      <div class="prize-card"><div class="prize-icon">🥇</div><div class="prize-amt">50$</div><div class="prize-rank">المركز الأول</div></div>
+      <div class="prize-card"><div class="prize-icon">🥈</div><div class="prize-amt">Badge</div><div class="prize-rank">الثاني</div></div>
+      <div class="prize-card"><div class="prize-icon">🥉</div><div class="prize-amt">Badge</div><div class="prize-rank">الثالث</div></div>
+    </div>
+    <div class="week-reset">⏱ Reset خلال 4 أيام و 12 ساعة</div>
+    <div id="lb-list" style="width:100%;display:flex;flex-direction:column;gap:8px;"></div>
+    <button class="btn-secondary" onclick="showScreen('menu')">رجوع</button>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = [
+  { id:'geo', name:'جغرافيا', icon:'🌍' },
+  { id:'sport', name:'رياضة', icon:'⚽' },
+  { id:'iq', name:'ذكاء', icon:'🧠' },
+  { id:'history', name:'تاريخ', icon:'📚' },
+  { id:'science', name:'علوم', icon:'🔬' },
+  { id:'games', name:'ألعاب', icon:'🎮' },
+  { id:'movies', name:'أفلام', icon:'🎬' },
+  { id:'mix', name:'Mix', icon:'🎲' },
+];
+
+const QUESTIONS = [
+  { cat:'geo', q:'ما هي عاصمة اليابان؟', opts:['بكين','طوكيو','سيول','بانكوك'], ans:1 },
+  { cat:'geo', q:'أطول نهر في العالم؟', opts:['الأمازون','النيل','المسيسيبي','السند'], ans:1 },
+  { cat:'geo', q:'كم عدد قارات العالم؟', opts:['5','6','7','8'], ans:2 },
+  { cat:'geo', q:'أكبر دولة في العالم مساحةً؟', opts:['كندا','الصين','أمريكا','روسيا'], ans:3 },
+  { cat:'sport', q:'كم مرة فازت البرازيل بكأس العالم؟', opts:['3','4','5','6'], ans:2 },
+  { cat:'sport', q:'من هو الرياضي الأكثر تتويجاً بجائزة الأفضل في العالم؟', opts:['رونالدو','ميسي','نيمار','مبابي'], ans:1 },
+  { cat:'sport', q:'أي دولة استضافت كأس العالم 2022؟', opts:['السعودية','الإمارات','قطر','البحرين'], ans:2 },
+  { cat:'iq', q:'ما هو الرقم الذي يساوي مربعه 144؟', opts:['10','11','12','13'], ans:2 },
+  { cat:'iq', q:'لو عكست كلمة LEVEL كيف تصبح؟', opts:['VLEEL','LEVEL','LEVLE','LVEEL'], ans:1 },
+  { cat:'iq', q:'5 + 5 × 0 + 5 = ؟', opts:['0','10','55','5'], ans:1 },
+  { cat:'history', q:'في أي سنة تأسست الأمم المتحدة؟', opts:['1944','1945','1946','1947'], ans:1 },
+  { cat:'history', q:'من بنى الأهرامات؟', opts:['الفراعنة','الرومان','اليونانيون','البابليون'], ans:0 },
+  { cat:'science', q:'ما هو أسرع كوكب في دورانه حول الشمس؟', opts:['الزهرة','المريخ','عطارد','المشتري'], ans:2 },
+  { cat:'science', q:'كم يبلغ عدد عظام جسم الإنسان البالغ؟', opts:['186','206','226','246'], ans:1 },
+  { cat:'games', q:'في أي لعبة يوجد شخصية "Kratos"؟', opts:['Halo','God of War','Doom','Gears of War'], ans:1 },
+  { cat:'games', q:'ما هو اسم البطل في Fortnite؟', opts:['لا يوجد بطل محدد','Jonesy','Default','Peely'], ans:0 },
+  { cat:'games', q:'ما هي أكثر لعبة مبيعاً في التاريخ؟', opts:['GTA V','Tetris','Minecraft','Wii Sports'], ans:2 },
+  { cat:'movies', q:'من أخرج فيلم Inception؟', opts:['James Cameron','Christopher Nolan','Steven Spielberg','Ridley Scott'], ans:1 },
+  { cat:'movies', q:'في أي سنة صدر فيلم Avengers Endgame؟', opts:['2018','2019','2020','2021'], ans:1 },
+  { cat:'mix', q:'كم تبلغ سرعة الضوء تقريباً؟', opts:['300 ألف كم/ث','150 ألف كم/ث','450 ألف كم/ث','200 ألف كم/ث'], ans:0 },
+  { cat:'mix', q:'ما هي أصغر دولة في العالم؟', opts:['موناكو','سان مارينو','الفاتيكان','ليختنشتاين'], ans:2 },
+  { cat:'mix', q:'ما هي اللغة الأكثر انتشاراً في العالم؟', opts:['الإنجليزية','الإسبانية','الصينية المندرين','الهندية'], ans:2 },
+];
+
+let state = {
+  screen: 'menu',
+  selectedCat: 'mix',
+  questions: [],
+  currentQ: 0,
+  score: 0,
+  combo: 0,
+  maxCombo: 0,
+  correct: 0,
+  wrong: 0,
+  timer: null,
+  timeLeft: 15,
+  totalScore: 0,
+  gamesPlayed: 0,
+  bestScore: 0,
+  answered: false,
+  ll5050Used: false,
+  llSkipUsed: false,
+  llTimeUsed: false,
+};
+
+const lbData = [
+  { name:'AhmadKing', pts:340, you:false },
+  { name:'Quiz_Sara', pts:290, you:false },
+  { name:'Pro_Nader', pts:250, you:false },
+  { name:'رؤوف', pts:0, you:true },
+  { name:'Salim99', pts:180, you:false },
+];
+
+function showScreen(s) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById(s).classList.add('active');
+  state.screen = s;
+  if (s === 'leaderboard') renderLeaderboard();
+  if (s === 'menu') updateMenuStats();
+}
+
+function updateMenuStats() {
+  document.getElementById('total-score').textContent = state.totalScore;
+  document.getElementById('games-played').textContent = state.gamesPlayed;
+  document.getElementById('best-score').textContent = state.bestScore;
+}
+
+function renderCategories() {
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const el = document.createElement('div');
+    el.className = 'cat-card' + (state.selectedCat === cat.id ? ' selected' : '');
+    el.innerHTML = `<span class="cat-icon">${cat.icon}</span><div class="cat-name">${cat.name}</div>`;
+    el.onclick = () => {
+      state.selectedCat = cat.id;
+      document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    };
+    grid.appendChild(el);
+  });
+}
+
+function startGame() {
+  clearInterval(state.timer);
+  let pool = state.selectedCat === 'mix'
+    ? [...QUESTIONS]
+    : QUESTIONS.filter(q => q.cat === state.selectedCat || q.cat === 'mix');
+  if (pool.length < 5) pool = [...QUESTIONS];
+  pool = pool.sort(() => Math.random() - 0.5).slice(0, 10);
+  state.questions = pool;
+  state.currentQ = 0;
+  state.score = 0;
+  state.combo = 0;
+  state.maxCombo = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.ll5050Used = false;
+  state.llSkipUsed = false;
+  state.llTimeUsed = false;
+  document.getElementById('ll-5050').disabled = false;
+  document.getElementById('ll-skip').disabled = false;
+  document.getElementById('ll-time').disabled = false;
+  showScreen('game');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  state.answered = false;
+  const q = state.questions[state.currentQ];
+  document.getElementById('q-counter').textContent = `سؤال ${state.currentQ + 1} / ${state.questions.length}`;
+  document.getElementById('score-disp').textContent = `${state.score} نقطة`;
+  document.getElementById('q-category').textContent = CATEGORIES.find(c => c.id === q.cat)?.icon + ' ' + CATEGORIES.find(c => c.id === q.cat)?.name || '';
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('combo-tag').classList.remove('show');
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  const letters = ['أ','ب','ج','د'];
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.id = `opt-${i}`;
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => answer(i);
+    grid.appendChild(btn);
+  });
+  startTimer();
+}
+
+function startTimer(seconds) {
+  clearInterval(state.timer);
+  state.timeLeft = seconds || 15;
+  updateTimerBar();
+  state.timer = setInterval(() => {
+    state.timeLeft -= 0.1;
+    updateTimerBar();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timer);
+      if (!state.answered) timeOut();
+    }
+  }, 100);
+}
+
+function updateTimerBar() {
+  const pct = Math.max(0, (state.timeLeft / 15) * 100);
+  const fill = document.getElementById('timer-fill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct > 50 ? 'linear-gradient(90deg,#FFD700,#FFA500)' : pct > 25 ? 'linear-gradient(90deg,#FFA500,#FF6600)' : 'linear-gradient(90deg,#FF4444,#FF0000)';
+}
+
+function timeOut() {
+  state.answered = true;
+  state.wrong++;
+  state.combo = 0;
+  const q = state.questions[state.currentQ];
+  document.getElementById(`opt-${q.ans}`).classList.add('correct');
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  setTimeout(nextQuestion, 1200);
+}
+
+function answer(i) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timer);
+  const q = state.questions[state.currentQ];
+  const btn = document.getElementById(`opt-${i}`);
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  if (i === q.ans) {
+    btn.classList.add('correct');
+    state.correct++;
+    state.combo++;
+    if (state.combo > state.maxCombo) state.maxCombo = state.combo;
+    const bonus = Math.floor(state.timeLeft) + (state.combo > 1 ? (state.combo - 1) * 3 : 0);
+    const gained = 10 + bonus;
+    state.score += gained;
+    showPointsPopup('+' + gained);
+    if (state.combo > 1) {
+      const tag = document.getElementById('combo-tag');
+      tag.textContent = `🔥 Combo x${state.combo}`;
+      tag.classList.add('show');
+    }
+  } else {
+    btn.classList.add('wrong');
+    document.getElementById(`opt-${q.ans}`).classList.add('correct');
+    state.wrong++;
+    state.combo = 0;
+  }
+  document.getElementById('score-disp').textContent = `${state.score} نقطة`;
+  setTimeout(nextQuestion, 1400);
+}
+
+function showPointsPopup(txt) {
+  const el = document.getElementById('pts-popup');
+  el.textContent = txt;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 1000);
+}
+
+function nextQuestion() {
+  state.currentQ++;
+  if (state.currentQ >= state.questions.length) {
+    endGame();
+  } else {
+    loadQuestion();
+  }
+}
+
+function endGame() {
+  state.gamesPlayed++;
+  state.totalScore += state.score;
+  if (state.score > state.bestScore) state.bestScore = state.score;
+  lbData.find(x => x.you).pts = state.totalScore;
+  lbData.sort((a, b) => b.pts - a.pts);
+
+  document.getElementById('res-score').textContent = state.score;
+  const titles = ['حاول مرة ثانية 💪', 'مش بطال!', 'كويس جداً!', 'أداء ممتاز! 🔥', 'بطل الأبطال! 🏆'];
+  const idx = Math.min(Math.floor(state.correct / 2), 4);
+  document.getElementById('res-title').textContent = titles[idx];
+  document.getElementById('res-sub').textContent = `أجبت صح على ${state.correct} من ${state.questions.length} أسئلة`;
+  document.getElementById('res-correct').textContent = state.correct;
+  document.getElementById('res-wrong').textContent = state.wrong;
+  document.getElementById('res-combo').textContent = state.maxCombo;
+  const ranks = ['🥉 Bronze Player', '🥈 Silver Player', '🥇 Gold Player', '👑 Legend Player'];
+  const rankIdx = state.totalScore > 500 ? 3 : state.totalScore > 200 ? 2 : state.totalScore > 50 ? 1 : 0;
+  document.getElementById('rank-up').textContent = ranks[rankIdx];
+  showScreen('result');
+}
+
+function useFiftyFifty() {
+  if (state.ll5050Used || state.answered) return;
+  state.ll5050Used = true;
+  document.getElementById('ll-5050').disabled = true;
+  const q = state.questions[state.currentQ];
+  let removed = 0;
+  for (let i = 0; i < 4 && removed < 2; i++) {
+    if (i !== q.ans) {
+      const btn = document.getElementById(`opt-${i}`);
+      if (btn) { btn.style.opacity = '0.15'; btn.disabled = true; removed++; }
+    }
+  }
+}
+
+function useSkip() {
+  if (state.llSkipUsed || state.answered) return;
+  state.llSkipUsed = true;
+  document.getElementById('ll-skip').disabled = true;
+  state.answered = true;
+  clearInterval(state.timer);
+  setTimeout(nextQuestion, 400);
+}
+
+function useExtraTime() {
+  if (state.llTimeUsed || state.answered) return;
+  state.llTimeUsed = true;
+  document.getElementById('ll-time').disabled = true;
+  state.timeLeft = Math.min(state.timeLeft + 10, 25);
+  clearInterval(state.timer);
+  startTimer(state.timeLeft);
+}
+
+function renderLeaderboard() {
+  const list = document.getElementById('lb-list');
+  list.innerHTML = '';
+  const rankClass = ['gold', 'silver', 'bronze', '', ''];
+  const medals = ['🥇', '🥈', '🥉'];
+  lbData.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'lb-item' + (p.you ? ' lb-you' : '');
+    el.innerHTML = `
+      <div class="lb-rank ${rankClass[i] || ''}">${i < 3 ? medals[i] : i + 1}</div>
+      <div class="lb-avatar">${p.name.charAt(0)}</div>
+      <div class="lb-name">${p.name}${p.you ? ' (أنت)' : ''}</div>
+      <div class="lb-pts">${p.pts} pts</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+renderCategories();
+</script>
