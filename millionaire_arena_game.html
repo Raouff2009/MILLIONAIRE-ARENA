@@ -2,17 +2,10 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font-sans); }
-#app {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  min-height: 100vh;
-  border-radius: 0;
-}
+#app { min-height: 600px; background: #0a0f2e; color: #fff; border-radius: var(--border-radius-lg); overflow: hidden; position: relative; }
 
-.screen { 
-  padding: 1rem; 
-}.screen.active { display: flex; flex-direction: column; align-items: center; }
+.screen { display: none; padding: 2rem; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
 
 /* MAIN MENU */
 #menu { background: linear-gradient(160deg, #0a0f2e 0%, #1a1060 100%); min-height: 600px; justify-content: center; gap: 1.5rem; }
@@ -38,9 +31,7 @@ body { font-family: var(--font-sans); }
 #categories { background: #0a0f2e; min-height: 600px; gap: 1.2rem; }
 .section-title { font-size: 20px; font-weight: 600; color: #FFD700; align-self: flex-start; }
 .section-sub { font-size: 13px; color: #8899cc; align-self: flex-start; margin-top: -8px; }
-.cat-grid {
-  grid-template-columns: repeat(2, 1fr);
-}
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
 .cat-card { background: #111840; border: 2px solid transparent; border-radius: 12px; padding: 14px 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
 .cat-card:hover, .cat-card.selected { border-color: #FFD700; background: rgba(255,215,0,0.07); }
 .cat-icon { font-size: 26px; display: block; margin-bottom: 6px; }
@@ -198,47 +189,7 @@ body { font-family: var(--font-sans); }
     <button class="btn-secondary" onclick="showScreen('menu')">رجوع</button>
   </div>
 </div>
-<style>
-  @media (max-width: 600px) {
-  #app {
-    border-radius: 0;
-  }
 
-  .game-title {
-    font-size: 22px;
-  }
-
-  .btn-primary, .btn-secondary {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .stats-row {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .cat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .q-text {
-    font-size: 15px;
-  }
-
-  .opt-btn {
-    font-size: 13px;
-    padding: 12px;
-  }
-    button {
-  touch-action: manipulation;
-}
-    body {
-  overflow-x: hidden;
-  background: #0a0f2e;
-}
-  
-</style>
 <script>
 const CATEGORIES = [
   { id:'geo', name:'جغرافيا', icon:'🌍' },
